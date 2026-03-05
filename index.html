@@ -420,7 +420,7 @@
 
   <!-- HERO -->
   <section class="hero">
-    <div class="hero-badge"><span></span> Emergency First Aid App</div>
+    <div class="hero-badge"><span></span> Capstone Project 2025</div>
     <h1>First Aid in<br/>Your <em>Pocket</em></h1>
     <p class="hero-sub">MediFirst is an emergency first aid mobile app that gives you instant guidance, AI assistance, and hospital locator — all offline capable.</p>
     <div class="hero-btns">
@@ -672,16 +672,16 @@
   <!-- FOOTER -->
   <footer>
     <div class="footer-logo">Medi<em>First</em></div>
-    <div class="footer-desc">First Aid Emergency App · Built for Emergency Preparedness</div>
+    <div class="footer-desc">First Aid Emergency App · Capstone Project 2025</div>
     <div class="footer-links">
       <a href="#features">Features</a>
       <a href="#how">How It Works</a>
       <a href="#guides">Guides</a>
       <a href="#tech">Tech Stack</a>
       <a href="#download">Download</a>
-      <a href="" target="_blank">API</a>
+      <a href="https://medifirst-production.up.railway.app" target="_blank">API</a>
     </div>
-    <div class="footer-copy">© 2026 MediFirst Team. Built for emergency preparedness. All rights reserved.</div>
+    <div class="footer-copy">© 2025 MediFirst Team. Built for emergency preparedness. All rights reserved.</div>
   </footer>
 
   <script>
@@ -691,5 +691,170 @@
     }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
     document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
   </script>
+
+  <!-- ══ DOWNLOAD POPUP MODAL ══ -->
+  <style>
+    #popup-overlay {
+      position: fixed; inset: 0; z-index: 999;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+      opacity: 0; transition: opacity 0.4s ease;
+      pointer-events: none;
+    }
+    #popup-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    #popup-card {
+      background: #1a1a1f;
+      border: 1px solid rgba(231,76,60,0.3);
+      border-radius: 28px;
+      padding: 48px 40px;
+      max-width: 420px; width: 100%;
+      text-align: center;
+      position: relative;
+      transform: translateY(40px) scale(0.95);
+      transition: transform 0.45s cubic-bezier(0.34,1.56,0.64,1);
+      box-shadow: 0 40px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05);
+    }
+    #popup-overlay.open #popup-card {
+      transform: translateY(0) scale(1);
+    }
+    .popup-glow {
+      position: absolute; inset: 0; border-radius: 28px;
+      background: radial-gradient(circle at 50% 0%, rgba(231,76,60,0.1) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .popup-icon-wrap {
+      position: relative; display: inline-block; margin-bottom: 20px;
+    }
+    .popup-pulse {
+      width: 84px; height: 84px; border-radius: 50%;
+      background: rgba(231,76,60,0.15);
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+      animation: popPulse 2s infinite;
+    }
+    .popup-icon {
+      width: 64px; height: 64px; border-radius: 20px;
+      background: #e74c3c;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 32px; position: relative; z-index: 1;
+      box-shadow: 0 8px 24px rgba(231,76,60,0.4);
+    }
+    .popup-title {
+      font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800;
+      color: #fff; margin-bottom: 10px;
+    }
+    .popup-desc {
+      font-size: 14px; color: #888; margin-bottom: 24px; line-height: 1.7;
+    }
+    .popup-perks {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 14px; padding: 16px 20px;
+      margin-bottom: 24px; text-align: left;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .popup-perk {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 13px; color: #ddd;
+    }
+    .popup-perk-check { color: #27ae60; font-size: 15px; flex-shrink: 0; }
+    .popup-dl-btn {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      background: #e74c3c; color: #fff;
+      padding: 16px 32px; border-radius: 50px;
+      font-size: 16px; font-weight: 700; text-decoration: none;
+      transition: all 0.25s;
+      box-shadow: 0 8px 32px rgba(231,76,60,0.4);
+      font-family: 'DM Sans', sans-serif;
+      margin-bottom: 12px;
+    }
+    .popup-dl-btn:hover { transform: translateY(-2px); box-shadow: 0 14px 40px rgba(231,76,60,0.5); }
+    .popup-later {
+      background: none; border: none; color: #555;
+      font-size: 13px; cursor: pointer; padding: 8px 16px;
+      font-family: 'DM Sans', sans-serif;
+      transition: color 0.2s; width: 100%;
+    }
+    .popup-later:hover { color: #888; }
+    .popup-close {
+      position: absolute; top: 16px; right: 16px;
+      width: 32px; height: 32px; border-radius: 50%;
+      background: rgba(255,255,255,0.08); border: none;
+      color: #888; font-size: 15px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+    }
+    .popup-close:hover { background: rgba(255,255,255,0.15); color: #fff; }
+    @keyframes popPulse {
+      0%,100% { transform: translate(-50%,-50%) scale(1); opacity: 0.5; }
+      50%      { transform: translate(-50%,-50%) scale(1.5); opacity: 0; }
+    }
+  </style>
+
+  <div id="popup-overlay">
+    <div id="popup-card">
+      <div class="popup-glow"></div>
+      <button class="popup-close" onclick="closePopup()">✕</button>
+
+      <div class="popup-icon-wrap">
+        <div class="popup-pulse"></div>
+        <div class="popup-icon">📲</div>
+      </div>
+
+      <div class="popup-title">Get MediFirst Free!</div>
+      <div class="popup-desc">Download the app now and be prepared<br/>for any emergency — works offline too!</div>
+
+      <div class="popup-perks">
+        <div class="popup-perk"><span class="popup-perk-check">✓</span> 9 offline first aid guides with images</div>
+        <div class="popup-perk"><span class="popup-perk-check">✓</span> AI-powered first aid chatbot</div>
+        <div class="popup-perk"><span class="popup-perk-check">✓</span> One-tap 911 call & GPS location share</div>
+        <div class="popup-perk"><span class="popup-perk-check">✓</span> Nearby hospital locator — free forever</div>
+      </div>
+
+      <!-- ✅ REPLACE href WITH YOUR ACTUAL APK LINK -->
+      <a href="YOUR_APK_DOWNLOAD_LINK_HERE" class="popup-dl-btn">
+        📥 Download APK — It's Free
+      </a>
+      <button class="popup-later" onclick="closePopup()">Maybe later</button>
+    </div>
+  </div>
+
+  <script>
+    const overlay = document.getElementById('popup-overlay');
+
+    function openPopup() {
+      overlay.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closePopup() {
+      overlay.classList.remove('open');
+      document.body.style.overflow = '';
+      sessionStorage.setItem('popup_dismissed', 'true');
+    }
+
+    // Close when clicking outside the card
+    overlay.addEventListener('click', function(e) {
+      if (e.target === overlay) closePopup();
+    });
+
+    // Close on Escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closePopup();
+    });
+
+    // Auto-open after 1.5s — only once per session
+    window.addEventListener('load', function() {
+      if (!sessionStorage.getItem('popup_dismissed')) {
+        setTimeout(openPopup, 1500);
+      }
+    });
+  </script>
+
 </body>
 </html>
