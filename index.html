@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MediFirst — First Aid Emergency App</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --red:      #e74c3c;
+      --red-dark: #c0392b;
+      --red-glow: rgba(231,76,60,0.18);
+      --green:    #27ae60;
+      --bg:       #0d0d0f;
+      --bg2:      #131316;
+      --bg3:      #1a1a1f;
+      --border:   rgba(255,255,255,0.07);
+      --text:     #f0f0f0;
+      --muted:    #888;
+      --card:     rgba(255,255,255,0.04);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    /* ── NOISE TEXTURE OVERLAY ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 0; opacity: 0.4;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 40px;
+      background: rgba(13,13,15,0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo { display: flex; align-items: center; gap: 10px; }
+    .nav-logo-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: var(--red); display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+    .nav-logo-text { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 18px; color: #fff; }
+    .nav-links { display: flex; gap: 32px; }
+    .nav-links a { color: var(--muted); text-decoration: none; font-size: 14px; font-weight: 500; transition: color 0.2s; }
+    .nav-links a:hover { color: #fff; }
+    .nav-cta {
+      background: var(--red); color: #fff; border: none; padding: 10px 22px;
+      border-radius: 25px; font-size: 14px; font-weight: 600; cursor: pointer;
+      text-decoration: none; transition: all 0.2s;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .nav-cta:hover { background: var(--red-dark); transform: translateY(-1px); }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center;
+      padding: 120px 24px 80px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Red glow blobs */
+    .hero::after {
+      content: '';
+      position: absolute;
+      width: 600px; height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(231,76,60,0.12) 0%, transparent 70%);
+      top: 50%; left: 50%; transform: translate(-50%, -60%);
+      pointer-events: none;
+    }
+
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(231,76,60,0.12); border: 1px solid rgba(231,76,60,0.3);
+      color: var(--red); padding: 8px 18px; border-radius: 25px;
+      font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
+      margin-bottom: 32px;
+      animation: fadeUp 0.6s ease both;
+    }
+    .hero-badge span { width: 6px; height: 6px; border-radius: 50%; background: var(--red); animation: pulse 1.5s infinite; }
+
+    .hero h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(48px, 8vw, 96px);
+      font-weight: 800;
+      line-height: 1.0;
+      letter-spacing: -2px;
+      margin-bottom: 12px;
+      animation: fadeUp 0.6s 0.1s ease both;
+    }
+    .hero h1 em {
+      font-style: normal;
+      background: linear-gradient(135deg, var(--red) 0%, #ff8a80 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+
+    .hero-sub {
+      font-size: clamp(16px, 2vw, 20px);
+      color: var(--muted); max-width: 520px;
+      margin: 20px auto 48px;
+      font-weight: 300; line-height: 1.7;
+      animation: fadeUp 0.6s 0.2s ease both;
+    }
+
+    .hero-btns {
+      display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;
+      animation: fadeUp 0.6s 0.3s ease both;
+    }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: var(--red); color: #fff;
+      padding: 16px 32px; border-radius: 50px;
+      font-size: 16px; font-weight: 600; text-decoration: none;
+      transition: all 0.25s; border: none; cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      box-shadow: 0 8px 32px rgba(231,76,60,0.35);
+    }
+    .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 16px 48px rgba(231,76,60,0.45); }
+    .btn-secondary {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: transparent; color: #fff;
+      padding: 16px 32px; border-radius: 50px;
+      font-size: 16px; font-weight: 600; text-decoration: none;
+      border: 1px solid var(--border); transition: all 0.25s;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .btn-secondary:hover { border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.05); }
+
+    /* Phone mockup */
+    .hero-phone {
+      margin-top: 80px;
+      position: relative;
+      animation: fadeUp 0.6s 0.4s ease both;
+    }
+    .phone-frame {
+      width: 260px; height: 520px;
+      border: 2px solid rgba(255,255,255,0.12);
+      border-radius: 44px;
+      background: var(--bg3);
+      margin: 0 auto;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 40px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05), inset 0 0 60px rgba(231,76,60,0.05);
+    }
+    .phone-notch {
+      position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+      width: 100px; height: 28px; background: var(--bg); border-radius: 20px; z-index: 2;
+    }
+    .phone-screen {
+      position: absolute; inset: 0;
+      background: linear-gradient(160deg, #1a0a0a 0%, #0d0d0f 40%, #0a1a0f 100%);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 14px; padding: 20px;
+    }
+    .phone-app-icon {
+      width: 64px; height: 64px; border-radius: 18px;
+      background: var(--red); display: flex; align-items: center; justify-content: center;
+      font-size: 32px; margin-bottom: 8px;
+      box-shadow: 0 8px 24px rgba(231,76,60,0.4);
+    }
+    .phone-title { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; color: #fff; }
+    .phone-sub { font-size: 11px; color: var(--muted); text-align: center; line-height: 1.5; }
+    .phone-bars {
+      display: flex; flex-direction: column; gap: 8px; width: 100%;
+      margin-top: 16px;
+    }
+    .phone-bar {
+      height: 36px; border-radius: 10px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.06);
+      display: flex; align-items: center; padding: 0 12px; gap: 8px;
+    }
+    .phone-bar-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .phone-bar-line { height: 6px; border-radius: 3px; background: rgba(255,255,255,0.1); flex: 1; }
+
+    /* ── STATS ── */
+    .stats {
+      display: flex; justify-content: center; flex-wrap: wrap; gap: 0;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      background: var(--bg2);
+    }
+    .stat {
+      flex: 1; min-width: 160px;
+      padding: 40px 24px; text-align: center;
+      border-right: 1px solid var(--border);
+    }
+    .stat:last-child { border-right: none; }
+    .stat-num {
+      font-family: 'Syne', sans-serif;
+      font-size: 40px; font-weight: 800; color: var(--red);
+      line-height: 1; margin-bottom: 8px;
+    }
+    .stat-label { font-size: 13px; color: var(--muted); font-weight: 400; }
+
+    /* ── SECTION COMMON ── */
+    section { padding: 100px 24px; position: relative; z-index: 1; }
+    .container { max-width: 1100px; margin: 0 auto; }
+    .section-tag {
+      display: inline-block;
+      font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+      color: var(--red); margin-bottom: 16px;
+    }
+    .section-title {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(32px, 4vw, 52px);
+      font-weight: 800; line-height: 1.1;
+      letter-spacing: -1px; margin-bottom: 20px;
+    }
+    .section-desc { font-size: 16px; color: var(--muted); max-width: 520px; line-height: 1.8; }
+
+    /* ── FEATURES ── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px; margin-top: 60px;
+    }
+    .feature-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px; padding: 32px;
+      transition: all 0.3s;
+      position: relative; overflow: hidden;
+    }
+    .feature-card::before {
+      content: ''; position: absolute;
+      inset: 0; border-radius: 20px;
+      background: linear-gradient(135deg, var(--red-glow) 0%, transparent 60%);
+      opacity: 0; transition: opacity 0.3s;
+    }
+    .feature-card:hover { border-color: rgba(231,76,60,0.3); transform: translateY(-4px); }
+    .feature-card:hover::before { opacity: 1; }
+    .feature-icon {
+      width: 52px; height: 52px; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; margin-bottom: 20px;
+    }
+    .feature-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; margin-bottom: 10px; }
+    .feature-desc { font-size: 14px; color: var(--muted); line-height: 1.7; }
+
+    /* ── HOW IT WORKS ── */
+    .how-section { background: var(--bg2); }
+    .steps { display: flex; flex-direction: column; gap: 0; margin-top: 60px; position: relative; }
+    .steps::before {
+      content: ''; position: absolute;
+      left: 28px; top: 0; bottom: 0; width: 2px;
+      background: linear-gradient(to bottom, var(--red), transparent);
+    }
+    .step {
+      display: flex; gap: 32px; align-items: flex-start;
+      padding: 32px 0; border-bottom: 1px solid var(--border);
+      position: relative;
+    }
+    .step:last-child { border-bottom: none; }
+    .step-num {
+      width: 56px; height: 56px; border-radius: 50%;
+      background: var(--red); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800;
+      flex-shrink: 0; position: relative; z-index: 1;
+      box-shadow: 0 0 0 6px var(--bg2);
+    }
+    .step-content { padding-top: 8px; }
+    .step-title { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+    .step-desc { font-size: 15px; color: var(--muted); line-height: 1.7; }
+
+    /* ── GUIDES ── */
+    .guides-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px; margin-top: 60px;
+    }
+    .guide-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 24px 20px;
+      display: flex; flex-direction: column; align-items: center; text-align: center;
+      gap: 12px; transition: all 0.25s; cursor: default;
+    }
+    .guide-card:hover { border-color: rgba(255,255,255,0.15); transform: translateY(-3px); background: rgba(255,255,255,0.06); }
+    .guide-emoji { font-size: 36px; }
+    .guide-name { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; }
+    .guide-steps { font-size: 12px; color: var(--muted); }
+    .guide-badge {
+      font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 20px;
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
+
+    /* ── TECH STACK ── */
+    .tech-grid {
+      display: flex; flex-wrap: wrap; gap: 12px; margin-top: 48px;
+    }
+    .tech-pill {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--card); border: 1px solid var(--border);
+      padding: 10px 18px; border-radius: 50px;
+      font-size: 13px; font-weight: 500;
+      transition: all 0.2s;
+    }
+    .tech-pill:hover { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.07); }
+    .tech-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+    /* ── DOWNLOAD ── */
+    .download-section {
+      background: linear-gradient(135deg, rgba(231,76,60,0.08) 0%, transparent 60%);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      text-align: center;
+    }
+    .download-card {
+      background: var(--bg3); border: 1px solid rgba(231,76,60,0.2);
+      border-radius: 28px; padding: 60px 40px; max-width: 600px; margin: 0 auto;
+      position: relative; overflow: hidden;
+    }
+    .download-card::before {
+      content: ''; position: absolute; top: -50%; left: -50%;
+      width: 200%; height: 200%;
+      background: radial-gradient(circle at center, rgba(231,76,60,0.06) 0%, transparent 60%);
+    }
+    .download-icon { font-size: 64px; margin-bottom: 24px; }
+    .download-title {
+      font-family: 'Syne', sans-serif; font-size: 36px; font-weight: 800;
+      margin-bottom: 16px;
+    }
+    .download-desc { color: var(--muted); font-size: 16px; margin-bottom: 36px; line-height: 1.7; }
+    .download-btn {
+      display: inline-flex; align-items: center; gap: 12px;
+      background: var(--red); color: #fff;
+      padding: 18px 40px; border-radius: 50px;
+      font-size: 18px; font-weight: 700; text-decoration: none;
+      transition: all 0.25s;
+      box-shadow: 0 12px 40px rgba(231,76,60,0.4);
+      font-family: 'DM Sans', sans-serif;
+    }
+    .download-btn:hover { transform: translateY(-3px); box-shadow: 0 20px 60px rgba(231,76,60,0.5); }
+    .download-meta {
+      display: flex; align-items: center; justify-content: center; gap: 20px;
+      margin-top: 28px; flex-wrap: wrap;
+    }
+    .download-meta-item { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
+    .download-meta-item span { color: var(--green); }
+
+    /* ── FOOTER ── */
+    footer {
+      padding: 48px 24px; text-align: center;
+      border-top: 1px solid var(--border);
+      background: var(--bg2);
+    }
+    .footer-logo { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; margin-bottom: 12px; }
+    .footer-logo em { font-style: normal; color: var(--red); }
+    .footer-desc { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+    .footer-links { display: flex; justify-content: center; gap: 24px; flex-wrap: wrap; margin-bottom: 32px; }
+    .footer-links a { color: var(--muted); text-decoration: none; font-size: 14px; transition: color 0.2s; }
+    .footer-links a:hover { color: #fff; }
+    .footer-copy { color: #444; font-size: 13px; }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.4; }
+    }
+
+    .reveal {
+      opacity: 0; transform: translateY(32px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      nav { padding: 14px 20px; }
+      .nav-links { display: none; }
+      .stats { flex-direction: column; }
+      .stat { border-right: none; border-bottom: 1px solid var(--border); }
+      .stat:last-child { border-bottom: none; }
+      .steps::before { display: none; }
+      .download-card { padding: 40px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-logo">
+      <div class="nav-logo-icon">🏥</div>
+      <span class="nav-logo-text">MediFirst</span>
+    </div>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#how">How It Works</a>
+      <a href="#guides">Guides</a>
+      <a href="#tech">Tech Stack</a>
+      <a href="#download">Download</a>
+    </div>
+    <a href="#download" class="nav-cta">📥 Download APK</a>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-badge"><span></span> Emergency First Aid App</div>
+    <h1>First Aid in<br/>Your <em>Pocket</em></h1>
+    <p class="hero-sub">MediFirst is an emergency first aid mobile app that gives you instant guidance, AI assistance, and hospital locator — all offline capable.</p>
+    <div class="hero-btns">
+      <a href="#download" class="btn-primary">📥 Download APK <span>→</span></a>
+      <a href="#features" class="btn-secondary">See Features</a>
+    </div>
+    <div class="hero-phone">
+      <div class="phone-frame">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+          <div class="phone-app-icon">🏥</div>
+          <div class="phone-title">MediFirst</div>
+          <div class="phone-sub">First Aid Assistant</div>
+          <div class="phone-bars">
+            <div class="phone-bar"><div class="phone-bar-dot" style="background:#e74c3c"></div><div class="phone-bar-line" style="width:70%"></div></div>
+            <div class="phone-bar"><div class="phone-bar-dot" style="background:#27ae60"></div><div class="phone-bar-line" style="width:50%"></div></div>
+            <div class="phone-bar"><div class="phone-bar-dot" style="background:#2980b9"></div><div class="phone-bar-line" style="width:85%"></div></div>
+            <div class="phone-bar"><div class="phone-bar-dot" style="background:#8e44ad"></div><div class="phone-bar-line" style="width:60%"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stat reveal">
+      <div class="stat-num">9</div>
+      <div class="stat-label">First Aid Guides</div>
+    </div>
+    <div class="stat reveal">
+      <div class="stat-num">AI</div>
+      <div class="stat-label">Powered Chatbot</div>
+    </div>
+    <div class="stat reveal">
+      <div class="stat-num">100%</div>
+      <div class="stat-label">Offline Capable</div>
+    </div>
+    <div class="stat reveal">
+      <div class="stat-num">Free</div>
+      <div class="stat-label">No Cost Ever</div>
+    </div>
+  </div>
+
+  <!-- FEATURES -->
+  <section id="features">
+    <div class="container">
+      <div class="reveal">
+        <div class="section-tag">✦ Features</div>
+        <h2 class="section-title">Everything You Need<br/>in an Emergency</h2>
+        <p class="section-desc">MediFirst combines real first aid knowledge with modern technology to keep you prepared at all times.</p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card reveal">
+          <div class="feature-icon" style="background:rgba(231,76,60,0.15)">🤖</div>
+          <div class="feature-title">AI First Aid Assistant</div>
+          <div class="feature-desc">Powered by Groq AI (LLaMA 3.3), ask any first aid question and get instant, accurate guidance. Available 24/7.</div>
+        </div>
+        <div class="feature-card reveal">
+          <div class="feature-icon" style="background:rgba(39,174,96,0.15)">🏥</div>
+          <div class="feature-title">Hospital Locator</div>
+          <div class="feature-desc">Find the nearest hospitals and emergency care facilities using OpenStreetMap with Cebu City coverage.</div>
+        </div>
+        <div class="feature-card reveal">
+          <div class="feature-icon" style="background:rgba(41,128,185,0.15)">📚</div>
+          <div class="feature-title">Offline First Aid Guides</div>
+          <div class="feature-desc">9 comprehensive step-by-step guides with images — CPR, choking, burns, bleeding, seizures, stroke, and more. Works offline!</div>
+        </div>
+        <div class="feature-card reveal">
+          <div class="feature-icon" style="background:rgba(231,76,60,0.15)">🚨</div>
+          <div class="feature-title">One-Tap Emergency Call</div>
+          <div class="feature-desc">Call 911 or emergency services instantly with a single tap. No searching, no delays — just immediate help.</div>
+        </div>
+        <div class="feature-card reveal">
+          <div class="feature-icon" style="background:rgba(142,68,173,0.15)">📍</div>
+          <div class="feature-title">Send GPS Location</div>
+          <div class="feature-desc">Share your exact GPS location via SMS to emergency contacts with a single tap. Your location goes exactly where it needs to be.</div>
+        </div>
+        <div class="feature-card reveal">
+          <div class="feature-icon" style="background:rgba(39,174,96,0.15)">👤</div>
+          <div class="feature-title">Medical Profile</div>
+          <div class="feature-desc">Store your blood type, allergies, medications, and emergency contacts securely for first responders to access quickly.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section id="how" class="how-section">
+    <div class="container">
+      <div class="reveal">
+        <div class="section-tag">✦ How It Works</div>
+        <h2 class="section-title">Simple. Fast.<br/>Life-Saving.</h2>
+        <p class="section-desc">Designed for emergencies — no complicated setup, no learning curve.</p>
+      </div>
+      <div class="steps">
+        <div class="step reveal">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <div class="step-title">Download & Install</div>
+            <div class="step-desc">Download the free APK file and install it on your Android phone. No app store required. Works on Android 8.0 and above.</div>
+          </div>
+        </div>
+        <div class="step reveal">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <div class="step-title">Create Your Profile</div>
+            <div class="step-desc">Register a free account and fill in your medical profile — blood type, allergies, and emergency contacts. Or use as a guest for instant access.</div>
+          </div>
+        </div>
+        <div class="step reveal">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <div class="step-title">Access First Aid Guides</div>
+            <div class="step-desc">Browse 9 comprehensive first aid guides with step-by-step image instructions. Download them for offline use anytime.</div>
+          </div>
+        </div>
+        <div class="step reveal">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <div class="step-title">Ask the AI Assistant</div>
+            <div class="step-desc">Tap the chat bubble on the home screen to ask MediFirst AI any first aid question. Get instant, clear guidance powered by Groq AI.</div>
+          </div>
+        </div>
+        <div class="step reveal">
+          <div class="step-num">5</div>
+          <div class="step-content">
+            <div class="step-title">In an Emergency</div>
+            <div class="step-desc">Use the one-tap 911 call, send your GPS location to contacts, or find the nearest hospital — all from the home screen.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GUIDES -->
+  <section id="guides">
+    <div class="container">
+      <div class="reveal">
+        <div class="section-tag">✦ First Aid Guides</div>
+        <h2 class="section-title">9 Life-Saving<br/>Guides Included</h2>
+        <p class="section-desc">Every guide includes step-by-step instructions with images, warnings, and when to call emergency services.</p>
+      </div>
+      <div class="guides-grid">
+        <div class="guide-card reveal">
+          <div class="guide-emoji">🫀</div>
+          <div class="guide-name">CPR</div>
+          <div class="guide-steps">Adult · Child · Baby</div>
+          <div class="guide-badge" style="background:rgba(231,76,60,0.15);color:#e74c3c">CRITICAL</div>
+        </div>
+        <div class="guide-card reveal">
+          <div class="guide-emoji">😮‍💨</div>
+          <div class="guide-name">Choking</div>
+          <div class="guide-steps">5 Steps</div>
+          <div class="guide-badge" style="background:rgba(231,76,60,0.15);color:#e74c3c">CRITICAL</div>
+        </div>
+        <div class="guide-card reveal">
+          <div class="guide-emoji">🔥</div>
+          <div class="guide-name">Burns</div>
+          <div class="guide-steps">5 Steps</div>
+          <div class="guide-badge" style="background:rgba(230,126,34,0.15);color:#e67e22">HIGH</div>
+        </div>
+        <div class="guide-card reveal">
+          <div class="guide-emoji">🩹</div>
+          <div class="guide-name">Bleeding</div>
+          <div class="guide-steps">11 Steps</div>
+          <div class="guide-badge" style="background:rgba(231,76,60,0.15);color:#e74c3c">CRITICAL</div>
+        </div>
+        <div class="guide-card reveal">
+          <div class="guide-emoji">🦴</div>
+          <div class="guide-name">Fractures</div>
+          <div class="guide-steps">7 Steps</div>
+          <div class="guide-badge" style="background:rgba(230,126,34,0.15);color:#e67e22">HIGH</div>
+        </div>
+        <div class="guide-card reveal">
+          <div class="guide-emoji">⚡</div>
+          <div class="guide-name">Seizures</div>
+          <div class="guide-steps">7 Steps</div>
+          <div class="guide-badge" style="background:rgba(230,126,34,0.15);color:#e67e22">HIGH</div>
+        </div>
+        <div class="guide-card reveal">
+          <div class="guide-emoji">🧠</div>
+          <div class="guide-name">Stroke</div>
+          <div class="guide-steps">6 Steps</div>
+          <div class="guide-badge" style="background:rgba(231,76,60,0.15);color:#e74c3c">CRITICAL</div>
+        </div>
+        <div class="guide-card reveal">
+          <div class="guide-emoji">🌡️</div>
+          <div class="guide-name">Heat Stroke</div>
+          <div class="guide-steps">5 Steps</div>
+          <div class="guide-badge" style="background:rgba(230,126,34,0.15);color:#e67e22">HIGH</div>
+        </div>
+        <div class="guide-card reveal">
+          <div class="guide-emoji">☠️</div>
+          <div class="guide-name">Poisoning</div>
+          <div class="guide-steps">5 Steps</div>
+          <div class="guide-badge" style="background:rgba(231,76,60,0.15);color:#e74c3c">CRITICAL</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TECH STACK -->
+  <section id="tech" style="background:var(--bg2)">
+    <div class="container">
+      <div class="reveal">
+        <div class="section-tag">✦ Tech Stack</div>
+        <h2 class="section-title">Built With<br/>Modern Technology</h2>
+        <p class="section-desc">MediFirst is built using industry-standard technologies for reliability, performance, and scalability.</p>
+      </div>
+      <div class="tech-grid">
+        <div class="tech-pill reveal"><div class="tech-dot" style="background:#61dafb"></div>React Native</div>
+        <div class="tech-pill reveal"><div class="tech-dot" style="background:#fff"></div>Expo</div>
+        <div class="tech-pill reveal"><div class="tech-dot" style="background:#68a063"></div>Node.js</div>
+        <div class="tech-pill reveal"><div class="tech-dot" style="background:#4db33d"></div>MongoDB</div>
+        <div class="tech-pill reveal"><div class="tech-dot" style="background:#e74c3c"></div>Express.js</div>
+        <div class="tech-pill reveal"><div class="tech-dot" style="background:#f39c12"></div>JWT Auth</div>
+        <div class="tech-pill reveal"><div class="tech-dot" style="background:#16a085"></div>Groq AI (LLaMA 3.3)</div>
+        <div class="tech-pill reveal"><div class="tech-dot" style="background:#7b2d8b"></div>Railway (Backend Host)</div>
+        <div class="tech-pill reveal"><div class="tech-dot" style="background:#27ae60"></div>OpenStreetMap API</div>
+        <div class="tech-pill reveal"><div class="tech-dot" style="background:#e67e22"></div>Redux Toolkit</div>
+        <div class="tech-pill reveal"><div class="tech-dot" style="background:#2980b9"></div>AsyncStorage</div>
+        <div class="tech-pill reveal"><div class="tech-dot" style="background:#c0392b"></div>Nodemailer</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DOWNLOAD -->
+  <section id="download" class="download-section">
+    <div class="container">
+      <div class="download-card reveal">
+        <div class="download-icon">📲</div>
+        <div class="download-title">Download MediFirst</div>
+        <div class="download-desc">Free forever. No ads. No subscriptions. Just install and be prepared for any emergency.</div>
+        <!-- ✅ REPLACE href WITH YOUR ACTUAL APK LINK -->
+        <a href="YOUR_APK_DOWNLOAD_LINK_HERE" class="download-btn">
+          📥 Download APK (Android)
+        </a>
+        <div class="download-meta">
+          <div class="download-meta-item"><span>✓</span> Free to download</div>
+          <div class="download-meta-item"><span>✓</span> Android 8.0+</div>
+          <div class="download-meta-item"><span>✓</span> No ads ever</div>
+          <div class="download-meta-item"><span>✓</span> Works offline</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-logo">Medi<em>First</em></div>
+    <div class="footer-desc">First Aid Emergency App · Built for Emergency Preparedness</div>
+    <div class="footer-links">
+      <a href="#features">Features</a>
+      <a href="#how">How It Works</a>
+      <a href="#guides">Guides</a>
+      <a href="#tech">Tech Stack</a>
+      <a href="#download">Download</a>
+      <a href="" target="_blank">API</a>
+    </div>
+    <div class="footer-copy">© 2026 MediFirst Team. Built for emergency preparedness. All rights reserved.</div>
+  </footer>
+
+  <script>
+    // Scroll reveal
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); } });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+  </script>
+</body>
+</html>
